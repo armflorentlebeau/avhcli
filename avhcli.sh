@@ -309,7 +309,7 @@ done
 shift "$((OPTIND-1))"   # Discard the options and sentinel --
 
 echo "I'm not sure what to do..."
-echo "Please enter one of the following --create, --start, --stop, --delete."
+echo "Please enter one of the following: create, start, stop, delete."
 show_help
 exit 1
 
