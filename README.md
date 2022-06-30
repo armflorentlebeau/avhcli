@@ -1,6 +1,7 @@
 # Arm Virtual Hardware CLI tool
 
 This tool in bash helps to quickly create/start/stop/delete Arm Virtual Hardware 3rd Party instances.
+
 For more information: https://avh.arm.com/
 
 ## Prerequisite
@@ -51,6 +52,6 @@ sudo openvpn avh.ovpn
 ### 2. Connect to the console
 
 ```
-nc $(cat ip.txt) 
+nc $(cat ip.txt) 2000
 ```
 
