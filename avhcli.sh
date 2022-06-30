@@ -29,6 +29,9 @@ CLI tool for Arm Virtual Hardware.
 EOF
 }
 
+# Create settings folder
+mkdir -p $BASEDIR/.avh
+
 # Get token from settings folder or ask the user
 get_token() {
   if [ "$AVH_TOKEN" == "" ]; then
@@ -37,7 +40,6 @@ get_token() {
       echo "Using token found in $BASEDIR/.avh/token.txt"
       return
     else
-      mkdir -p $BASEDIR/.avh
       echo "Token not found in $BASEDIR/.avh/avh_token.txt. Please enter token:"
       read AVH_TOKEN
       echo "Saving token in $BASEDIR/.avh/token.txt"
