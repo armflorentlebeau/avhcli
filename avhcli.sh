@@ -159,7 +159,7 @@ start_instance() {
       -H \"Authorization: Bearer $BEARER\" "
     echo "Waiting for instance to be ready"
     STATUS=$(eval $CMD)
-    while [ "$STATUS" == "starting" ] ; do
+    while [ "$STATUS" != "on" ] ; do
       printf "\r|"
       sleep 2
       printf "\r/"
