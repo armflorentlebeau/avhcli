@@ -70,8 +70,8 @@ get_project() {
 
 # Get instance IP
 get_ip() {
-  if [ -f $BASEDIR/.avh/instance.txt ]; then
-    INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
+  if [ -f $BASEDIR/.avh/"$NAME.txt" ]; then
+    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
   else
     return
   fi
@@ -79,16 +79,16 @@ get_ip() {
     -H "Accept: application/json" \
     -H "Authorization: Bearer $BEARER" \
     | jq -r ".[] | select(.id==\"$INSTANCE\")" | jq -r '.serviceIp' )
-  echo $IP > $BASEDIR/ip.txt
+  echo $IP > $BASEDIR/"$NAME"_ip.txt
   echo "Instance IP is: $IP"
   echo "To connect to the console: nc $IP 2000"
-  echo "IP information has been saved in $BASEDIR/ip.txt"
+  echo "IP information has been saved in $BASEDIR/"$NAME"_ip.txt"
 }
 
 # Get ovpn certificate
 get_ovpn() {
-  if [ -f $BASEDIR/.avh/instance.txt ]; then
-    INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
+  if [ -f $BASEDIR/.avh/"$NAME.txt" ]; then
+    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
   else
     return
   fi
@@ -100,7 +100,8 @@ get_ovpn() {
 
 # Create instance
 create() {
-  if [ -f $BASEDIR/.avh/instance.txt ]; then
+  echo Creating $NAME...
+  if [ -f $BASEDIR/.avh/"$NAME.txt" ]; then
     echo "An instance has already been created. Do you want to start/stop/delete it instead?"
     return
   else
@@ -113,14 +114,14 @@ create() {
     if [ "$MODEL" == "stm32u5-b-u585i-iot02a" ]; then
       OS="1.1.0"
     fi
-    REQ="{\"project\":\"$PROJECT\",\"$NAME\":\"$MODEL Created via API\",\"flavor\":\"$MODEL\",\"os\":\"$OS\"}"
+    REQ="{\"project\":\"$PROJECT\",\"name\":\"$NAME\",\"flavor\":\"$MODEL\",\"os\":\"$OS\"}"
     INSTANCE=$(curl -s -X POST "$AVH_URL/instances" \
       -H "Accept: application/json" \
       -H "Authorization: Bearer $BEARER" \
       -H "Content-Type: application/json" \
       -d "$REQ" \
       | jq -r '.id' )
-    echo $INSTANCE > $BASEDIR/.avh/instance.txt
+    echo $INSTANCE > $BASEDIR/.avh/"$NAME.txt"
   fi
 
   # Wait for instance to be ready
@@ -145,11 +146,11 @@ create() {
 
 # Start instance
 start_instance() {
-  if [ ! -f $BASEDIR/.avh/instance.txt ]; then
+  if [ ! -f $BASEDIR/.avh/"$NAME.txt" ]; then
     echo "An instance could not be found. Do you want to create one instead?"
     return
   else
-    INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
+    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
     curl -s -X POST "$AVH_URL/instances/$INSTANCE/start" \
       -H "Accept: application/json" \
       -H "Authorization: Bearer $BEARER" \
@@ -178,11 +179,11 @@ start_instance() {
 
 # Stop instance
 stop_instance() {
-  if [ ! -f $BASEDIR/.avh/instance.txt ]; then
+  if [ ! -f $BASEDIR/.avh/"$NAME.txt" ]; then
     echo "An instance could not be found. Do you want to create one instead?"
     return
   else
-    INSTANCE=$(cat $BASEDIR/.avh/"$NAME".txt)
+    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
     curl -s -X POST "$AVH_URL/instances/$INSTANCE/stop" \
       -H "Accept: application/json" \
       -H "Authorization: Bearer $BEARER" \
@@ -193,16 +194,16 @@ stop_instance() {
 
 # Delete instance
 delete() {
-  if [ ! -f $BASEDIR/.avh/"$NAME".txt ]; then
+  if [ ! -f $BASEDIR/.avh/"$NAME.txt" ]; then
     echo "An instance could not be found. Do you want to create one instead?"
     return
   else
-    INSTANCE=$(cat $BASEDIR/.avh/"$NAME".txt)
+    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
     curl -s -X DELETE "$AVH_URL/instances/$INSTANCE" \
       -H "Accept: application/json" \
       -H "Authorization: Bearer $BEARER"
-    rm $BASEDIR/.avh/"$NAME".txt
-    rm $BASEDIR/ip.txt
+    rm $BASEDIR/.avh/"$NAME.txt"
+    rm $BASEDIR/"$NAME"_ip.txt
     rm $BASEDIR/avh.ovpn
   fi
 }

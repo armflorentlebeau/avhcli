@@ -22,10 +22,11 @@ git clone https://github.com/armflorentlebeau/avhcli.git
 
 ```
 ./avhcli.sh -h
-Usage: avhcli.sh [--help | -h] [--token | -t TOKEN] [--model | -m MODEL] OPERATION
+Usage: avhcli.sh [--help | -h] [--token | -t TOKEN] [--name | -n NAME] [--model | -m MODEL] OPERATION
 CLI tool for Arm Virtual Hardware.
     --help  | -h         display this help and exit
     --token | -t TOKEN   specify API token
+    --name  | -n NAME    specify an instance name
     --model | -m MODEL   specify AVH model when using create. Ignored otherwise
                          MODEL should be one of imx8mp-evk (default), rpi4b or stm32u5-b-u585i-iot02a
     OPERATION should be one of:
@@ -52,6 +53,6 @@ sudo openvpn avh.ovpn
 ### 2. Connect to the console
 
 ```
-nc $(cat ip.txt) 2000
+nc $(cat <name>_ip.txt) 2000
 ```
 
