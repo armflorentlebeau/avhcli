@@ -5,8 +5,9 @@ AVH_TOKEN=""
 BEARER=""
 PROJECT=""
 INSTANCE=""
-MODEL="imx8mp-evk"
+MODEL="rpi4b"
 IP=""
+NAME="name"
 
 # Static variables
 AVH_URL="https://app.avh.arm.com/api/v1"
@@ -19,6 +20,7 @@ Usage: ${0##*/} [--help | -h] [--token | -t TOKEN] [--model | -m MODEL] OPERATIO
 CLI tool for Arm Virtual Hardware.
     --help  | -h         display this help and exit
     --token | -t TOKEN   specify API token
+    --name  | -n NAME    specify an instance name
     --model | -m MODEL   specify AVH model when using create. Ignored otherwise
                          MODEL should be one of imx8mp-evk (default), rpi4b or stm32u5-b-u585i-iot02a
     OPERATION should be one of:
@@ -111,7 +113,7 @@ create() {
     if [ "$MODEL" == "stm32u5-b-u585i-iot02a" ]; then
       OS="1.1.0"
     fi
-    REQ="{\"project\":\"$PROJECT\",\"name\":\"$MODEL Created via API\",\"flavor\":\"$MODEL\",\"os\":\"$OS\"}"
+    REQ="{\"project\":\"$PROJECT\",\"$NAME\":\"$MODEL Created via API\",\"flavor\":\"$MODEL\",\"os\":\"$OS\"}"
     INSTANCE=$(curl -s -X POST "$AVH_URL/instances" \
       -H "Accept: application/json" \
       -H "Authorization: Bearer $BEARER" \
@@ -180,7 +182,7 @@ stop_instance() {
     echo "An instance could not be found. Do you want to create one instead?"
     return
   else
-    INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
+    INSTANCE=$(cat $BASEDIR/.avh/"$NAME".txt)
     curl -s -X POST "$AVH_URL/instances/$INSTANCE/stop" \
       -H "Accept: application/json" \
       -H "Authorization: Bearer $BEARER" \
@@ -191,15 +193,15 @@ stop_instance() {
 
 # Delete instance
 delete() {
-  if [ ! -f $BASEDIR/.avh/instance.txt ]; then
+  if [ ! -f $BASEDIR/.avh/"$NAME".txt ]; then
     echo "An instance could not be found. Do you want to create one instead?"
     return
   else
-    INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
+    INSTANCE=$(cat $BASEDIR/.avh/"$NAME".txt)
     curl -s -X DELETE "$AVH_URL/instances/$INSTANCE" \
       -H "Accept: application/json" \
       -H "Authorization: Bearer $BEARER"
-    rm $BASEDIR/.avh/instance.txt
+    rm $BASEDIR/.avh/"$NAME".txt
     rm $BASEDIR/ip.txt
     rm $BASEDIR/avh.ovpn
   fi
@@ -252,6 +254,7 @@ for arg in "$@"; do
   case "$arg" in
     '--help')   set -- "$@" '-h'   ;;
     '--token')  set -- "$@" '-t'   ;;
+    '--name')   set -- "$@" '-n'   ;;
     '--model')  set -- "$@" '-m'   ;;
     'create')   set -- "$@" '-c'   ;;
     'delete')   set -- "$@" '-d'   ;;
@@ -274,6 +277,9 @@ while getopts ht:m:cdls opt; do
         t)
             AVH_TOKEN=$OPTARG
             ;;
+        n)
+            NAME="$OPTARG"
+            ;;        
         m)
             MODEL=$OPTARG
             if [[ "$MODEL" != "imx8mp-evk" ]] && \
@@ -312,4 +318,3 @@ echo "I'm not sure what to do..."
 echo "Please enter one of the following: create, start, stop, delete."
 show_help
 exit 1
-
