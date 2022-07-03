@@ -16,7 +16,7 @@ BASEDIR=$(dirname "$0")
 # Usage info
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--help | -h] [--token | -t TOKEN] [--model | -m MODEL] OPERATION
+Usage: ${0##*/} [--help | -h] [--token | -t TOKEN] [--name | -n NAME] [--model | -m MODEL] OPERATION
 CLI tool for Arm Virtual Hardware.
     --help  | -h         display this help and exit
     --token | -t TOKEN   specify API token
@@ -268,7 +268,7 @@ OPTIND=1
 # Resetting OPTIND is necessary if getopts was used previously in the script.
 # It is a good idea to make OPTIND local if you process options in a function.
 
-while getopts ht:m:cdls opt; do
+while getopts ht:n:m:cdls opt; do
     case $opt in
         h)
             show_help
