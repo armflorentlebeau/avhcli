@@ -71,10 +71,12 @@ get_project() {
 
 # Get instance IP
 get_ip() {
-  if [ -f $BASEDIR/.avh/instance.txt ]; then
-    INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
-  else
-    return
+  if [ "$INSTANCE" == "" ]; then
+    if [ -f $BASEDIR/.avh/instance.txt ]; then
+      INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
+    else
+      return
+    fi
   fi
   IP=$(curl -s -X GET "$AVH_URL/instances" \
     -H "Accept: application/json" \
@@ -83,15 +85,19 @@ get_ip() {
   echo $IP > $BASEDIR/ip.txt
   echo "Instance IP is: $IP"
   echo "To connect to the console: nc $IP 2000"
-  echo "IP information has been saved in $BASEDIR/ip.txt"
+  if [ ! -f $BASEDIR/ip.txt ]; then
+   echo "IP information has been saved in $BASEDIR/ip.txt"
+  fi
 }
 
 # Get ovpn certificate
 get_ovpn() {
-  if [ -f $BASEDIR/.avh/instance.txt ]; then
-    INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
-  else
-    return
+  if [ "$INSTANCE" == "" ]; then
+    if [ -f $BASEDIR/.avh/instance.txt ]; then
+      INSTANCE=$(cat $BASEDIR/.avh/instance.txt)
+    else
+      return
+    fi
   fi
   curl -s -X GET "$AVH_URL/projects/$PROJECT/vpnconfig/ovpn" \
     -H "Accept: application/json" \
