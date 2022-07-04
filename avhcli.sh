@@ -108,27 +108,33 @@ get_ovpn() {
 # Create instance
 create() {
   if [ -f $BASEDIR/.avh/instance.txt ]; then
-    echo "An instance has already been created. Do you want to start/stop/delete it instead?"
-    return
-  else
-    if [ "$MODEL" == "imx8mp-evk" ]; then
-      OS="2.2.0"
+    echo "Instance details have been found and will be removed when creating a new instance. Do you wish to continue (Y/n, default: n)?"
+    read cont
+    if [ "$cont" != "Y" ]; then
+      echo "Cancelling"
+      return
+    else
+      echo "Continuing"
     fi
-    if [ "$MODEL" == "rpi4b" ]; then
-      OS="11.2.0"
-    fi
-    if [ "$MODEL" == "stm32u5-b-u585i-iot02a" ]; then
-      OS="1.1.0"
-    fi
-    REQ="{\"project\":\"$PROJECT\",\"name\":\"$MODEL\_Created\_via\_API\",\"flavor\":\"$MODEL\",\"os\":\"$OS\"}"
-    INSTANCE=$(curl -s -X POST "$AVH_URL/instances" \
-      -H "Accept: application/json" \
-      -H "Authorization: Bearer $BEARER" \
-      -H "Content-Type: application/json" \
-      -d "$REQ" \
-      | jq -r '.id' )
-    echo $INSTANCE > $BASEDIR/.avh/instance.txt
   fi
+
+  if [ "$MODEL" == "imx8mp-evk" ]; then
+    OS="2.2.0"
+  fi
+  if [ "$MODEL" == "rpi4b" ]; then
+    OS="11.2.0"
+  fi
+  if [ "$MODEL" == "stm32u5-b-u585i-iot02a" ]; then
+    OS="1.1.0"
+  fi
+  REQ="{\"project\":\"$PROJECT\",\"name\":\"$MODEL-Created_via_API\",\"flavor\":\"$MODEL\",\"os\":\"$OS\"}"
+  INSTANCE=$(curl -s -X POST "$AVH_URL/instances" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER" \
+    -H "Content-Type: application/json" \
+    -d "$REQ" \
+    | jq -r '.id' )
+  echo $INSTANCE > $BASEDIR/.avh/instance.txt
 
   # Wait for instance to be ready
   CMD="curl -s -X GET \"$AVH_URL/instances/$INSTANCE/state\" \
@@ -215,9 +221,16 @@ delete() {
   curl -s -X DELETE "$AVH_URL/instances/$INSTANCE" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer $BEARER"
-  rm $BASEDIR/.avh/instance.txt
-  rm $BASEDIR/ip.txt
-  rm $BASEDIR/avh.ovpn
+  # Cleanup
+  if [ -f $BASEDIR/.avh/instance.txt ]; then
+    rm $BASEDIR/.avh/instance.txt
+  fi
+  if [ -f $BASEDIR/ip.txt ]; then
+    rm $BASEDIR/ip.txt
+  fi
+  if [ -f $BASEDIR/avh.opvn ]; then
+    rm $BASEDIR/avh.ovpn
+  fi
 }
 
 # Status
