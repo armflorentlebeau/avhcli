@@ -6,10 +6,10 @@ For more information: https://avh.arm.com/
 
 ## Prerequisite
 
-curl should be installed on the system, as well as the OpenVPN client and netcat to connect to the instance. To install them on Debian machines:
+curl and jq should be installed on the system, as well as the OpenVPN client and netcat to connect to the instance. To install them on Debian machines:
 
 ```
-sudo apt install curl openvpn netcat
+sudo apt install curl jq openvpn netcat
 ```
 
 ## Installation
@@ -21,18 +21,20 @@ git clone https://github.com/armflorentlebeau/avhcli.git
 ## Usage
 
 ```
-./avhcli.sh -h
-Usage: avhcli.sh [--help | -h] [--token | -t TOKEN] [--model | -m MODEL] OPERATION
+Usage: avhcli.sh [--help | -h] [--token | -t TOKEN] [--id | -i ID] [--model | -m MODEL] OPERATION
 CLI tool for Arm Virtual Hardware.
     --help  | -h         display this help and exit
     --token | -t TOKEN   specify API token
-    --model | -m MODEL   specify AVH model when using create. Ignored otherwise
+    --model | -m MODEL   specify Arm Virtual Hardware model when using create. Ignored otherwise
                          MODEL should be one of imx8mp-evk (default), rpi4b or stm32u5-b-u585i-iot02a
+    --id    | -i ID      specify Arm Virtual Hardware instance ID when using start, stop or delete. Ignored otherwise
+                         Instance ID can be obtained using status
     OPERATION should be one of:
     create | -c          create an Arm Virtual Hardware instance
     delete | -d          delete the Arm Virtual Hardware instance create by this script
     start  | -l          start the Arm Virtual Hardware instance created by this script
     stop   | -s          stop the Arm Virtual Hardware instance created by this script
+    status | -q          query status of the Arm Virtual Hardware instances
 ```
 
 ## Create an API token
