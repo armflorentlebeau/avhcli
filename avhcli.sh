@@ -102,18 +102,15 @@ get_ovpn() {
 create() {
   echo Creating $NAME...
 
-  REQ="{\"name\":\"$NAME\"}"
-  INSTANCES=$(curl -s -X GET \"$AVH_URL/instances\" \
-    -H \"Accept: application/json\" \
-    -H \"Authorization: Bearer $BEARER\"  \
-    -d "$REQ" \
-    | jq -r '.id' )
+  INSTANCES=$(curl -s -X GET "$AVH_URL/instances" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER" \
+    | jq -r '.[]' )   
 
-  echo $INSTANCES
-  if echo $INSTANCE|fgrep $NAME; then
+  if echo $INSTANCES|fgrep -q $NAME; then
     echo "An instance has already been created. Do you want to start/stop/delete it instead?"
-    ID=$(echo $INSTANCES|grep -B1 $NAME|head -n1)
-    echo $ID
+    ID=$(echo $INSTANCES|sed 's/,\ /\n/g' | sed 's/{\ /\n{\n/g' | fgrep -B1 $NAME | fgrep id | tr -d '"' |cut -d " " -f2)
+    echo "ID: $ID"
     echo $ID > $BASEDIR/.avh/"$NAME.txt"
     return
   else
