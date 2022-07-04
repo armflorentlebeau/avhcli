@@ -101,8 +101,17 @@ get_ovpn() {
 # Create instance
 create() {
   echo Creating $NAME...
-  if [ -f $BASEDIR/.avh/"$NAME.txt" ]; then
+
+  INSTANCES="curl -s -X GET \"$AVH_URL/instances\" \
+    -H \"Accept: application/json\" \
+    -H \"Authorization: Bearer $BEARER\" "
+
+  echo $INSTANCES
+  if echo $INSTANCE|fgrep $NAME; then
     echo "An instance has already been created. Do you want to start/stop/delete it instead?"
+    ID=$(echo $INSTANCES|grep -B1 $NAME|head -n1)
+    echo $ID
+    echo $ID > $BASEDIR/.avh/"$NAME.txt"
     return
   else
     if [ "$MODEL" == "imx8mp-evk" ]; then
