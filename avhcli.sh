@@ -102,9 +102,12 @@ get_ovpn() {
 create() {
   echo Creating $NAME...
 
-  INSTANCES="curl -s -X GET \"$AVH_URL/instances\" \
+  REQ="{\"name\":\"$NAME\"}"
+  INSTANCES=$(curl -s -X GET \"$AVH_URL/instances\" \
     -H \"Accept: application/json\" \
-    -H \"Authorization: Bearer $BEARER\" "
+    -H \"Authorization: Bearer $BEARER\"  \
+    -d "$REQ" \
+    | jq -r '.id' )
 
   echo $INSTANCES
   if echo $INSTANCE|fgrep $NAME; then
