@@ -79,10 +79,18 @@ get_ip() {
     -H "Accept: application/json" \
     -H "Authorization: Bearer $BEARER" \
     | jq -r ".[] | select(.id==\"$INSTANCE\")" | jq -r '.serviceIp' )
+  LANIP=$(curl -s -X GET "$AVH_URL/instances" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER" \
+    | jq -r ".[] | select(.id==\"$INSTANCE\")" | jq -r '.serviceIp' )
   echo $IP > $BASEDIR/"$NAME"_ip.txt
-  echo "Instance IP is: $IP"
+  echo $LANIP > $BASEDIR/"$NAME"_lan_ip.txt
+  echo "Instance Service IP is: $IP"
+  echo "Instance LAN IP is: $LANIP"
   echo "To connect to the console: nc $IP 2000"
-  echo "IP information has been saved in $BASEDIR/"$NAME"_ip.txt"
+  echo "To ssh in, use: ssh pi@$LANIP"
+  echo "IP information has been saved in $BASEDIR/"$NAME"_ip.txt and $BASEDIR/"$NAME"_lan_ip.txt"
+}
 }
 
 # Open console 
@@ -118,6 +126,8 @@ create() {
     -H "Accept: application/json" \
     -H "Authorization: Bearer $BEARER" \
     | jq -r '.[]' )   
+
+  #echo $INSTANCES|sed 's/,\ /\n/g' | sed 's/{\ /\n{\n/g'
 
   if echo $INSTANCES|fgrep -q $NAME; then
     echo "An instance has already been created. Do you want to start/stop/delete it instead?"

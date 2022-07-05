@@ -6,3 +6,5 @@
 websocat
 wscat
 *.py
+key
+key.pub
