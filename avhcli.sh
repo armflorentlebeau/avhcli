@@ -91,7 +91,6 @@ get_ip() {
   echo "To ssh in, use: ssh pi@$LANIP"
   echo "IP information has been saved in $BASEDIR/"$NAME"_ip.txt and $BASEDIR/"$NAME"_lan_ip.txt"
 }
-}
 
 # Open console 
 get_console() { 
