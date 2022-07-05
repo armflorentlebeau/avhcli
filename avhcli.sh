@@ -22,7 +22,7 @@ CLI tool for Arm Virtual Hardware.
     --token | -t TOKEN   specify API token
     --name  | -n NAME    specify an instance name
     --model | -m MODEL   specify AVH model when using create. Ignored otherwise
-                         MODEL should be one of imx8mp-evk (default), rpi4b or stm32u5-b-u585i-iot02a
+                         MODEL should be one of imx8mp-evk, rpi4b(default) or stm32u5-b-u585i-iot02a
     OPERATION should be one of:
     create | -c          create an Arm Virtual Hardware instance
     delete | -d          delete the Arm Virtual Hardware instance create by this script
@@ -83,6 +83,18 @@ get_ip() {
   echo "Instance IP is: $IP"
   echo "To connect to the console: nc $IP 2000"
   echo "IP information has been saved in $BASEDIR/"$NAME"_ip.txt"
+}
+
+# Open console 
+get_console() {
+  echo Opening console to $NAME $INSTANCE
+  CONSOLE=$(curl -s -X GET "$AVH_URL/instances/$INSTANCE/console" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER" \
+    | jq -r ".[]" )
+echo $CONSOLE > $BASEDIR/"$NAME"_console.txt
+#echo $CONSOLE|fgrep url|cut -d '"' -f4 > $BASEDIR/"$NAME"_console.txt
+echo "Web console URL saved in $BASEDIR/"$NAME"_console.txt"
 }
 
 # Get ovpn certificate
@@ -213,6 +225,7 @@ delete() {
       -H "Authorization: Bearer $BEARER"
     rm $BASEDIR/.avh/"$NAME.txt"
     rm $BASEDIR/"$NAME"_ip.txt
+    rm $BASEDIR/"$NAME"_console.txt
     rm $BASEDIR/avh.ovpn
   fi
 }
@@ -224,6 +237,7 @@ avh_create() {
   echo "Creating instance"
   create
   get_ip
+  get_console
   get_ovpn
 }
 
@@ -234,6 +248,7 @@ avh_start() {
   echo "Starting instance"
   start_instance
   get_ip
+  get_console
   get_ovpn
 }
 

@@ -1,4 +1,8 @@
 *_ip.txt
+*_console.txt
 *.ovpn
 .avh
 .DS_Store
+websocat
+wscat
+*.py
