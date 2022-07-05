@@ -86,7 +86,7 @@ get_ip() {
 }
 
 # Open console 
-get_console() {
+get_console() { 
   echo Opening console to $NAME $INSTANCE
   CONSOLE=$(curl -s -X GET "$AVH_URL/instances/$INSTANCE/console" \
     -H "Accept: application/json" \
