@@ -82,7 +82,7 @@ get_ip() {
   LANIP=$(curl -s -X GET "$AVH_URL/instances" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer $BEARER" \
-    | jq -r ".[] | select(.id==\"$INSTANCE\")" | jq -r '.serviceIp' )
+    | jq -r ".[] | select(.id==\"$INSTANCE\")" | jq -r '.wifiIp' )
   echo $IP > $BASEDIR/"$NAME"_ip.txt
   echo $LANIP > $BASEDIR/"$NAME"_lan_ip.txt
   echo "Instance Service IP is: $IP"
