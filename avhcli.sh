@@ -28,6 +28,7 @@ CLI tool for Arm Virtual Hardware.
     delete | -d          delete the Arm Virtual Hardware instance create by this script
     start  | -l          start the Arm Virtual Hardware instance created by this script
     stop   | -s          stop the Arm Virtual Hardware instance created by this script
+    status | -q          query status of the Arm Virtual Hardware instances    
 EOF
 }
 
@@ -235,8 +236,29 @@ delete() {
     rm $BASEDIR/.avh/"$NAME.txt"
     rm $BASEDIR/"$NAME"_ip.txt
     rm $BASEDIR/"$NAME"_console.txt
-    rm $BASEDIR/avh.ovpn
+    if [ -f $BASEDIR/avh.opvn ]; then
+      rm $BASEDIR/avh.ovpn
+    fi
   fi
+}
+
+# Status
+get_status() {
+  LIST=$(curl -s -X GET "$AVH_URL/projects/$PROJECT/instances" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER" \
+    | jq -r '.[]')
+  LIST_ID=( $( echo $LIST | jq -r '.id') )
+  LIST_IP=( $( echo $LIST | jq -r '.serviceIp') )
+  LIST_STATUS=( $( echo $LIST | jq -r '.state') )
+  LIST_NAME=( $( echo $LIST | jq -r '.name') )
+  printf "                 ID                  |     IP    | STATUS\t| NAME\n"
+  printf "==================================================================================\n"
+  ctr=0
+  for i in ${LIST_ID[@]}; do
+    printf "$i | ${LIST_IP[$ctr]} | ${LIST_STATUS[$ctr]}\t\t| ${LIST_NAME[$ctr]}\n"
+    ctr=$(expr $ctr + 1)
+  done
 }
 
 avh_create() {
@@ -277,6 +299,15 @@ avh_delete() {
   delete
 }
 
+avh_status() {
+  get_token
+  get_bearer
+  get_project
+  echo "Querying status"
+  get_status
+}
+
+
 
 #################
 # Parse command #
@@ -294,6 +325,7 @@ for arg in "$@"; do
     'delete')   set -- "$@" '-d'   ;;
     'start')    set -- "$@" '-l'   ;;
     'stop')     set -- "$@" '-s'   ;;
+    'status')   set -- "$@" '-q'   ;;    
     *)          set -- "$@" "$arg" ;;
   esac
 done
@@ -340,6 +372,10 @@ while getopts ht:n:m:cdls opt; do
             avh_stop
             exit 0
             ;;
+        q)
+            avh_status
+            exit 0
+            ;;            
         *)
             show_help >&2
             exit 1
