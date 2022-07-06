@@ -71,10 +71,12 @@ get_project() {
 
 # Get instance IP
 get_ip() {
-  if [ -f $BASEDIR/.avh/"$NAME.txt" ]; then
-    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
-  else
-    return
+  if [ "$INSTANCE" == "" ]; then
+    if [ -f $BASEDIR/.avh/$NAME.txt ]; then
+      INSTANCE=$(cat $BASEDIR/.avh/$NAME.txt)
+    else
+      return
+    fi
   fi
   IP=$(curl -s -X GET "$AVH_URL/instances" \
     -H "Accept: application/json" \
@@ -100,17 +102,19 @@ get_console() {
     -H "Accept: application/json" \
     -H "Authorization: Bearer $BEARER" \
     | jq -r ".[]" )
-echo $CONSOLE > $BASEDIR/"$NAME"_console.txt
-#echo $CONSOLE|fgrep url|cut -d '"' -f4 > $BASEDIR/"$NAME"_console.txt
-echo "Web console URL saved in $BASEDIR/"$NAME"_console.txt"
+  echo $CONSOLE > $BASEDIR/"$NAME"_console.txt
+  #echo $CONSOLE|fgrep url|cut -d '"' -f4 > $BASEDIR/"$NAME"_console.txt
+  echo "Web console URL saved in $BASEDIR/"$NAME"_console.txt"
 }
 
 # Get ovpn certificate
 get_ovpn() {
-  if [ -f $BASEDIR/.avh/"$NAME.txt" ]; then
-    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
-  else
-    return
+  if [ "$INSTANCE" == "" ]; then
+    if [ -f $BASEDIR/.avh/$NAME.txt ]; then
+      INSTANCE=$(cat $BASEDIR/.avh/$NAME.txt)
+    else
+      return
+    fi
   fi
   curl -s -X GET "$AVH_URL/projects/$PROJECT/vpnconfig/ovpn" \
     -H "Accept: application/json" \
@@ -177,68 +181,75 @@ create() {
 
 # Start instance
 start_instance() {
-  if [ ! -f $BASEDIR/.avh/"$NAME.txt" ]; then
-    echo "An instance could not be found. Do you want to create one instead?"
-    return
-  else
-    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
-    curl -s -X POST "$AVH_URL/instances/$INSTANCE/start" \
-      -H "Accept: application/json" \
-      -H "Authorization: Bearer $BEARER" \
-      -H "Content-Type: application/json" \
-      -d '{"paused":false}'
-    # Wait for instance to be ready
-    CMD="curl -s -X GET \"$AVH_URL/instances/$INSTANCE/state\" \
-      -H \"Accept: application/json\" \
-      -H \"Authorization: Bearer $BEARER\" "
-    echo "Waiting for instance to be ready"
-    STATUS=$(eval $CMD)
-    while [ "$STATUS" != "on" ] ; do
-      printf "\r|"
-      sleep 2
-      printf "\r/"
-      sleep 2
-      printf "\r-"
-      sleep 2
-      printf "\r\\"
-      sleep 2
-      STATUS=$(eval $CMD)
-    done
-    printf "\rInstance is ready\n"
+  if [ "$INSTANCE" == "" ]; then
+    if [ ! -f $BASEDIR/.avh/$NAME.txt ]; then
+      echo "An instance could not be found. Did you forget to specify the instance ID?"
+      return
+    else
+      INSTANCE=$(cat $BASEDIR/.avh/$NAME.txt)
+    fi
   fi
+  curl -s -X POST "$AVH_URL/instances/$INSTANCE/start" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER" \
+    -H "Content-Type: application/json" \
+    -d '{"paused":false}'
+  # Wait for instance to be ready
+  CMD="curl -s -X GET \"$AVH_URL/instances/$INSTANCE/state\" \
+    -H \"Accept: application/json\" \
+    -H \"Authorization: Bearer $BEARER\" "
+  echo "Waiting for instance to be ready"
+  STATUS=$(eval $CMD)
+  while [ "$STATUS" != "on" ] ; do
+    printf "\r|"
+    sleep 2
+    printf "\r/"
+    sleep 2
+    printf "\r-"
+    sleep 2
+    printf "\r\\"
+    sleep 2
+    STATUS=$(eval $CMD)
+  done
+  printf "\rInstance is ready\n"
 }
 
 # Stop instance
 stop_instance() {
-  if [ ! -f $BASEDIR/.avh/"$NAME.txt" ]; then
-    echo "An instance could not be found. Do you want to create one instead?"
-    return
-  else
-    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
-    curl -s -X POST "$AVH_URL/instances/$INSTANCE/stop" \
-      -H "Accept: application/json" \
-      -H "Authorization: Bearer $BEARER" \
-      -H "Content-Type: application/json" \
-      -d '{"soft":false}'
+  if [ "$INSTANCE" == "" ]; then
+    if [ ! -f $BASEDIR/.avh/$NAME.txt ]; then
+      echo "An instance could not be found. Did you forget to specify the instance ID?"
+      return
+    else
+      INSTANCE=$(cat $BASEDIR/.avh/$NAME.txt)
+    fi
   fi
+  curl -s -X POST "$AVH_URL/instances/$INSTANCE/stop" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER" \
+    -H "Content-Type: application/json" \
+    -d '{"soft":false}'
 }
 
 # Delete instance
 delete() {
-  if [ ! -f $BASEDIR/.avh/"$NAME.txt" ]; then
-    echo "An instance could not be found. Do you want to create one instead?"
-    return
-  else
-    INSTANCE=$(cat $BASEDIR/.avh/"$NAME.txt")
-    curl -s -X DELETE "$AVH_URL/instances/$INSTANCE" \
-      -H "Accept: application/json" \
-      -H "Authorization: Bearer $BEARER"
-    rm $BASEDIR/.avh/"$NAME.txt"
-    rm $BASEDIR/"$NAME"_ip.txt
-    rm $BASEDIR/"$NAME"_console.txt
-    if [ -f $BASEDIR/avh.opvn ]; then
-      rm $BASEDIR/avh.ovpn
+  if [ "$INSTANCE" == "" ]; then
+    if [ ! -f $BASEDIR/.avh/$NAME.txt ]; then
+      echo "An instance could not be found. Did you forget to specify the instance ID?"
+      return
+    else
+      INSTANCE=$(cat $BASEDIR/.avh/$NAME.txt)
     fi
+  fi
+  curl -s -X DELETE "$AVH_URL/instances/$INSTANCE" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer $BEARER"
+   # Cleanup
+  rm $BASEDIR/.avh/"$NAME.txt"
+  rm $BASEDIR/"$NAME"_ip.txt
+  rm $BASEDIR/"$NAME"_console.txt
+  if [ -f $BASEDIR/avh.opvn ]; then
+    rm $BASEDIR/avh.ovpn
   fi
 }
 
@@ -320,6 +331,7 @@ for arg in "$@"; do
     '--help')   set -- "$@" '-h'   ;;
     '--token')  set -- "$@" '-t'   ;;
     '--name')   set -- "$@" '-n'   ;;
+    '--id')     set -- "$@" '-i'   ;;  
     '--model')  set -- "$@" '-m'   ;;
     'create')   set -- "$@" '-c'   ;;
     'delete')   set -- "$@" '-d'   ;;
@@ -334,7 +346,7 @@ OPTIND=1
 # Resetting OPTIND is necessary if getopts was used previously in the script.
 # It is a good idea to make OPTIND local if you process options in a function.
 
-while getopts ht:n:m:cdls opt; do
+while getopts ht:n:m:cdlsq opt; do
     case $opt in
         h)
             show_help
@@ -345,7 +357,10 @@ while getopts ht:n:m:cdls opt; do
             ;;
         n)
             NAME="$OPTARG"
-            ;;        
+            ;;   
+        i)
+            INSTANCE=$OPTARG
+            ;;                 
         m)
             MODEL=$OPTARG
             if [[ "$MODEL" != "imx8mp-evk" ]] && \
@@ -385,6 +400,6 @@ done
 shift "$((OPTIND-1))"   # Discard the options and sentinel --
 
 echo "I'm not sure what to do..."
-echo "Please enter one of the following: create, start, stop, delete."
+echo "Please enter one of the following: create, start, stop, delete, status."
 show_help
 exit 1
