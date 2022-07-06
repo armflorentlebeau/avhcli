@@ -346,7 +346,7 @@ OPTIND=1
 # Resetting OPTIND is necessary if getopts was used previously in the script.
 # It is a good idea to make OPTIND local if you process options in a function.
 
-while getopts ht:n:m:cdlsq opt; do
+while getopts ht:n:m:i:cdlsq opt; do
     case $opt in
         h)
             show_help
