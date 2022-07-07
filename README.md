@@ -65,10 +65,9 @@ nc $(cat <name>_ip.txt) 2000
 ssh $(cat <name>_lan_ip.txt)
 ```
 
-
 ### 4. WebSocket URL to the console (useful with python WebSocket, as well as commandline utilities like websocat and wscat)
 
 ```
-<name>_console.tx)
+./ws.py $(<name>_console.txt) "echo Hello world" n
 ```
 
