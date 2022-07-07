@@ -29,6 +29,8 @@ CLI tool for Arm Virtual Hardware.
     --name  | -n NAME    specify an instance name
     --model | -m MODEL   specify Arm Virtual Hardware model when using create. Ignored otherwise
                          MODEL should be one of imx8mp-evk (default), rpi4b or stm32u5-b-u585i-iot02a
+    --id    | -i ID      specify Arm Virtual Hardware instance ID when using start, stop or delete. Ignored otherwise
+                         Instance ID can be obtained using status                         
     OPERATION should be one of:
     create | -c          create an Arm Virtual Hardware instance
     delete | -d          delete the Arm Virtual Hardware instance create by this script
@@ -55,5 +57,18 @@ sudo openvpn --config avh.ovpn --daemon
 
 ```
 nc $(cat <name>_ip.txt) 2000
+```
+
+### 3. ssh to LAN IP (different from service console and debug IP)
+
+```
+ssh $(cat <name>_lan_ip.txt)
+```
+
+
+### 4. WebSocket URL to the console (useful with python WebSocket, as well as commandline utilities like websocat and wscat)
+
+```
+<name>_console.tx)
 ```
 

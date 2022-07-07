@@ -5,6 +5,4 @@
 .DS_Store
 websocat
 wscat
-*.py
-key
-key.pub
+web*.py

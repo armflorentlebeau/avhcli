@@ -16,13 +16,16 @@ BASEDIR=$(dirname "$0")
 # Usage info
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--help | -h] [--token | -t TOKEN] [--name | -n NAME] [--model | -m MODEL] OPERATION
+Usage: ${0##*/} [--help | -h] [--token | -t TOKEN] [--name | -n NAME] [--model | -m MODEL] [--id | -i ID] OPERATION
 CLI tool for Arm Virtual Hardware.
     --help  | -h         display this help and exit
     --token | -t TOKEN   specify API token
-    --name  | -n NAME    specify an instance name
+    --name  | -n NAME    specify an instance name for creation or if already created but no local id file is stored
+                         i.e. running in a GitHub workflow
     --model | -m MODEL   specify AVH model when using create. Ignored otherwise
                          MODEL should be one of imx8mp-evk, rpi4b(default) or stm32u5-b-u585i-iot02a
+    --id    | -i ID      specify Arm Virtual Hardware instance ID when using start, stop or delete. Ignored otherwise
+                         Instance ID can be obtained using status                         
     OPERATION should be one of:
     create | -c          create an Arm Virtual Hardware instance
     delete | -d          delete the Arm Virtual Hardware instance create by this script
@@ -126,16 +129,29 @@ get_ovpn() {
 create() {
   echo Creating $NAME...
 
-  INSTANCES=$(curl -s -X GET "$AVH_URL/instances" \
-    -H "Accept: application/json" \
-    -H "Authorization: Bearer $BEARER" \
-    | jq -r '.[]' )   
+  if [ ! -z "$INSTANCE" ]; then
+    #If instance ID was passed in at command line
+    ID="$INSTANCE"
+  elif [ -f $BASEDIR/.avh/$NAME.txt ]; then
+    echo "Instance details have been found locally."
+    ID=$(echo $BASEDIR/.avh/$NAME.txt)  
+  else
+    #Check all instances online in case this is a first run on a GitHub workflow
+    INSTANCES=$(curl -s -X GET "$AVH_URL/instances" \
+      -H "Accept: application/json" \
+      -H "Authorization: Bearer $BEARER" \
+      | jq -r '.[]' )   
 
-  #echo $INSTANCES|sed 's/,\ /\n/g' | sed 's/{\ /\n{\n/g'
-
-  if echo $INSTANCES|fgrep -q $NAME; then
+    #Find ID by name
+    if [ $(echo $INSTANCES | jq -c | fgrep $NAME |wc -l) -gt 1 ]; then
+      echo "WARNING! More than one instance of this namae was found, getting ID, and IPs of first instance found."
+    fi
+    ID=$(echo $INSTANCES | jq -c | fgrep $NAME |jq -r '.id' | head -n1)
+  fi  
+  
+  #if echo $INSTANCES|fgrep -q $NAME; then 
+  if [ ! -z "$ID" ]; then
     echo "An instance has already been created. Do you want to start/stop/delete it instead?"
-    ID=$(echo $INSTANCES|sed 's/,\ /\n/g' | sed 's/{\ /\n{\n/g' | fgrep -B1 $NAME | fgrep id | tr -d '"' |cut -d " " -f2)
     echo "ID: $ID"
     echo $ID > $BASEDIR/.avh/"$NAME.txt"
     return
@@ -360,6 +376,9 @@ while getopts ht:n:m:i:cdlsq opt; do
             ;;   
         i)
             INSTANCE=$OPTARG
+            if fgrep -q "$INSTANCE" .avh/*; then 
+              NAME=$(fgrep "$INSTANCE" .avh/*|cut -d ":" -f1|cut -d "/" -f2|sed 's/\.txt//g')
+            fi
             ;;                 
         m)
             MODEL=$OPTARG
